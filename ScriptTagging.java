@@ -24,7 +24,7 @@ public class ScriptTagging implements PlugInFilter
 
         for (Map.Entry <String, Integer> entry : allColors.entrySet())
         {
-            if (Math.ceil(entry.getValue() * 100f / colorsNumber) >= 10)
+            if (!entry.getKey().equals("unknown") && Math.ceil(entry.getValue() * 100f / colorsNumber) >= 10)
                 mainColors.add(entry.getKey());
         }
 
