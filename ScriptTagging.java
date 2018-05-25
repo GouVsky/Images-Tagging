@@ -8,68 +8,103 @@ import java.io.*;
 
 public class ScriptTagging implements PlugInFilter
 {
+	private List <String> tags;
+
     // Colors.
-    private int colorsNumber;
     private Map <String, Integer> allColors;
+
+    ImageStatistics stats;
 
 
     public ScriptTagging()
     {
+    	tags = new ArrayList <String> ();
+
         allColors = new HashMap <String, Integer> ();
     }
 
-    public List <String> selectMainColors()
+    public void getBrightness(long [] histogram)
+    {
+    	int darkness = 0;
+    	int brightness = 0;
+
+    	for (int i = 0; i < 70; i++)
+    		darkness += histogram[i];
+
+    	if (darkness / stats.area >= 0.6)
+    		tags.add("dark");
+
+    	else
+    	{
+			for (int i = 200; i < 255; i++)
+    			brightness += histogram[i];
+
+    		if (brightness / stats.area >= 0.6)
+    			tags.add("light");
+    	}
+    }
+
+    public void getMainColors()
     {
         List <String> mainColors = new ArrayList <String> ();
 
         for (Map.Entry <String, Integer> entry : allColors.entrySet())
         {
-            if (!entry.getKey().equals("unknown") && Math.ceil(entry.getValue() * 100f / colorsNumber) >= 15)
-                mainColors.add(entry.getKey());
+            if (Math.ceil(entry.getValue() * 100 / stats.area) >= 10)
+                tags.add(entry.getKey());
         }
-
-        return mainColors;
     }
 
-    public String getColor(float [] hsv)
+    public void getColor(float [] hsv)
     {
         float hue = hsv[0];
         float saturation = hsv[1];
         float value = hsv[2];
 
+        String color = "";
+
         if ((hue >= 0 && hue <= 360) && saturation <= 0.15 && value >= 0.65)
-            return "white";
+            color = "white";
 
         else if ((hue >= 0 && hue <= 360) && (saturation >= 0 && saturation <= 1) && value <= 0.1)
-            return "black";
+            color = "black";
 
         else if ((hue >= 0 && hue <= 360) && saturation <= 0.15 && (value >= 0.1 && value <= 0.65))
-            return "gray";
+            color = "gray";
 
         else if ((hue <= 11 || hue >= 351) && saturation >= 0.7 && value >= 0.1)
-            return "red";
+            color = "red";
 
         else if ((hue >= 180 && hue <= 255) && saturation >= 0.15 && value >= 0.1)
-            return "blue";
+            color = "blue";
 
         else if ((hue >= 64 && hue <= 150) && saturation >= 0.15 && value >= 0.1)
-            return "green";
+            color = "green";
 
         else if ((hue >= 45 && hue <= 64) && saturation >= 0.15 && value >= 0.1)
-            return "yellow";
+            color = "yellow";
 
         else if ((hue >= 11 && hue <= 45) && saturation >= 0.15 && value >= 0.75)
-            return "orange";
+            color = "orange";
 
         else if ((hue >= 11 && hue <= 45) && saturation >= 0.15 && (value >= 0.1 && value <= 0.75))
-            return "brown";
+            color = "brown";
 
-        else
-            return "unknown";
+
+        if (!color.isEmpty())
+        {
+			if (allColors.containsKey(color))
+            	allColors.put(color, allColors.get(color) + 1);
+
+        	else
+            	allColors.put(color, 1);
+        }
     }
 
     public void run(ImageProcessor ip)
     {        
+    	stats = (IJ.getImage()).getStatistics();
+
     	boolean grayscale = ip.isGrayscale();
 
         int width = ip.getWidth();
@@ -94,20 +129,17 @@ public class ScriptTagging implements PlugInFilter
 
                 Color.RGBtoHSB(rgb[0], rgb[1], rgb[2], hsv);
 
-                // On convertit 'hue' en degrés.
+                // On convertit la teinte en degrés.
                 hsv[0] *= 360;
                 
-                String color = getColor(hsv);
+                getColor(hsv);
 
-                colorsNumber++;
- 
-                if (allColors.containsKey(color))
-                    allColors.put(color, allColors.get(color) + 1);
-
-                else
-                    allColors.put(color, 1);
+                ip.set(x, y, hsv);
             }
         }
+
+        getMainColors();
+        getBrightness(stats.getHistogram());
 
         loadInFile();
     }
@@ -120,12 +152,12 @@ public class ScriptTagging implements PlugInFilter
         {
             file.createNewFile();
             BufferedWriter out = new BufferedWriter(new FileWriter(file));  
-            
-            List <String> mainColors = selectMainColors();
 
-            for (String color : mainColors)
-                out.write(color + " ");
- 
+            out.write(tags.get(0));
+
+            for (int i  =1; i < tags.size(); i++)
+                out.write(", " + tags.get(i));
+
             out.flush(); 
             out.close(); 
 
