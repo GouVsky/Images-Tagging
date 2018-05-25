@@ -66,8 +66,8 @@ public class ScriptTagging implements PlugInFilter
         if ((hue >= 0 && hue <= 360) && saturation <= 0.15 && value >= 0.65)
             color = "white";
 
-        else if ((hue >= 0 && hue <= 360) && (saturation >= 0 && saturation <= 1) && value <= 0.1)
-            color = "black";
+        else if ((hue >= 0 && hue <= 360) && saturation >= 0 && value <= 0.1)
+            return "black";
 
         else if ((hue >= 0 && hue <= 360) && saturation <= 0.15 && (value >= 0.1 && value <= 0.65))
             color = "gray";
