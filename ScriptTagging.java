@@ -67,7 +67,7 @@ public class ScriptTagging implements PlugInFilter
             color = "white";
 
         else if ((hue >= 0 && hue <= 360) && saturation >= 0 && value <= 0.1)
-            return "black";
+            color = "black";
 
         else if ((hue >= 0 && hue <= 360) && saturation <= 0.15 && (value >= 0.1 && value <= 0.65))
             color = "gray";
@@ -99,6 +99,12 @@ public class ScriptTagging implements PlugInFilter
         	else
             	allColors.put(color, 1);
         }
+    }
+
+    public void findSky(ImageProcessor ip)
+    {
+        int width = ip.getWidth();
+        int height = ip.getHeight();
     }
 
     public void run(ImageProcessor ip)
@@ -140,6 +146,7 @@ public class ScriptTagging implements PlugInFilter
 
         getMainColors();
         getBrightness(stats.getHistogram());
+        findSky(ip);
 
         loadInFile();
     }
