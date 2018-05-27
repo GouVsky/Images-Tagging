@@ -9,6 +9,8 @@ import java.io.*;
 
 public class ScriptTagging implements PlugInFilter
 {
+    private String name;
+
 	private List <String> tags;
 
     // Colors.
@@ -221,8 +223,7 @@ public class ScriptTagging implements PlugInFilter
 
         getMainColors();
         getBrightness(stats.getHistogram());
-
-
+    
 
 
         // Pour des tests.
@@ -254,7 +255,7 @@ public class ScriptTagging implements PlugInFilter
 
     public void loadInFile()
     {
-        File file = new File("/Users/Greg/Desktop/file.txt"); 
+        File file = new File(name + ".txt"); 
         
         try
         {
@@ -263,7 +264,7 @@ public class ScriptTagging implements PlugInFilter
 
             out.write(tags.get(0));
 
-            for (int i  =1; i < tags.size(); i++)
+            for (int i = 1; i < tags.size(); i++)
                 out.write(", " + tags.get(i));
 
             out.flush(); 
@@ -277,6 +278,8 @@ public class ScriptTagging implements PlugInFilter
 
     public int setup(String arg, ImagePlus imp)
     {
+        name = imp.getShortTitle();
+
         if (arg.equals("about"))
         {
             IJ.showMessage("Traitement de l'image");
