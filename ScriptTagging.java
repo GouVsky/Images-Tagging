@@ -352,27 +352,29 @@ public class ScriptTagging implements PlugInFilter
 
         // Pour des tests.
 
-        /*int [] verticalKernel = {-1, 2, -1, -1, 2, -1, -1, 2, -1};
+        int [] verticalKernel = {-1, 2, -1, -1, 2, -1, -1, 2, -1};
         int [] horizontalKernel = {-1, -1, -1, 2, 2, 2, -1, -1, -1};
 
         Pair <Integer, Integer> verticalEdges = getEdges(ip, verticalKernel, true);
         Pair <Integer, Integer> horizontalEdges = getEdges(ip, horizontalKernel, false);
 
-        double proportionVerticale = verticalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
-        double proportionHorizontale = horizontalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
+        //double proportionVerticale = verticalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
+        //double proportionHorizontale = horizontalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
 
         double verticalMean = verticalEdges.getValue() * 1f / verticalEdges.getKey();
-        double horizontalMean = horizontalEdges.getValue() * 1f / horizontalEdges.getKey();
+        //double horizontalMean = horizontalEdges.getValue() * 1f / horizontalEdges.getKey();
 
-        IJ.log("Proportion verticale : " + Double.toString(proportionVerticale));
+        /*IJ.log("Proportion verticale : " + Double.toString(proportionVerticale));
         IJ.log("Proportion horizontale : " + Double.toString(proportionHorizontale));
         IJ.log("Moyenne taille verticale : " + Double.toString(verticalMean));
         IJ.log("Moyenne taille horizontale : " + Double.toString(horizontalMean));
         IJ.log("Proportion moyenne verticale/horizontale : " + Double.toString(verticalMean / horizontalMean));
         IJ.log("Proportion verticale/horizontale : " + Double.toString(proportionVerticale / proportionHorizontale));
+        IJ.log("verticale - horizontale : " + Double.toString(verticalMean - horizontalMean));*/
 
-        if (verticalMean / horizontalMean > 1.3)
-            tags.add("city");*/
+
+        if (verticalMean > 4)
+            tags.add("city");
 
         loadInFile();
     }
