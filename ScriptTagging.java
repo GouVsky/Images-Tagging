@@ -26,9 +26,12 @@ public class ScriptTagging implements PlugInFilter
         allColors = new HashMap <String, Integer> ();
     }
 
-    public Pair <Integer, Integer> getEdges(ImageProcessor ip, int [] kernel, boolean vertical)
+    public void findCity(ImageProcessor ip)
     {
         ImageProcessor ipClone = ip.duplicate();
+
+        // Le masque de convolution permettant d'isoler les contours verticaux.
+        int [] kernel = {-1, 2, -1, -1, 2, -1, -1, 2, -1};
 
         ipClone.convolve3x3(kernel);
 
@@ -41,6 +44,8 @@ public class ScriptTagging implements PlugInFilter
         // La taille total des contours.
         int totalEdgesSize = 0;
 
+        // Lorsque l'on détecte un contour, on en récupère l'intégralité
+        // (les pixels du dessous, vu que l'on commence en 0x0, on ne peut pas en oublier au dessus).
         // On ajoute un chaque pixel un booléen afin de savoir s'il on l'a déjà visité ou non.
         // Si c'est le cas, cela signifie que l'on a déjà prix en compte le contour.
 
@@ -83,11 +88,7 @@ public class ScriptTagging implements PlugInFilter
 
             		edgeSize++;
 
-        			if (vertical)
-        				y++;
-
-        			else
-        				x++;
+        			y++;
 
             		ipClone.getPixel(x, y, rgb);
 
@@ -107,7 +108,10 @@ public class ScriptTagging implements PlugInFilter
             }
         }
 
-        return new Pair <Integer, Integer> (edgesCounter, totalEdgesSize);
+        double verticalMean = totalEdgesSize * 1f / edgesCounter;
+
+        if (verticalMean > 4)
+            tags.add("city");
     }
 
     public void getBrightness(long [] histogram)
@@ -123,10 +127,10 @@ public class ScriptTagging implements PlugInFilter
 
     	else
     	{
-			for (int i = 200; i < 255; i++)
+			for (int i = 190; i < 255; i++)
     			brightness += histogram[i];
 
-    		if (brightness / stats.area >= 0.6)
+    		if (brightness / stats.area >= 0.5)
     			tags.add("light");
     	}
     }
@@ -197,7 +201,7 @@ public class ScriptTagging implements PlugInFilter
     si le score atteind son max, on ajoute le tag "clear sky" aux tags
      */
 
-    public void findEnvironnement(ImageProcessor ip)
+    public boolean findEnvironnement(ImageProcessor ip)
     {
         // on définit ici une variable qui va s'incrémenter lors du parcours de l'image suivant les résultats obtenus
         int height =ip.getHeight();
@@ -327,21 +331,33 @@ public class ScriptTagging implements PlugInFilter
             }
         }
 
+        // Si on détecte le ciel, la mer ou la neige, on peut en déduire que l'on se trouve à l'extérieur.
+        // En revanche, l'inverse ne veut pas dire que l'on est à en intérieur (des arbres peuvent cacher le ciel par exemple).
+
+        boolean outside = false;
+
         if(scoreSky>=100)
         {
-            tags.add("sky");
+            outside = true;
+            tags.add("clear sky");
         }
 
         if(scoreSnow>=100 && scoreSky>=30)
         {
+            outside = true;
             tags.add("snow");
         }
 
         if(scoreSea>=100 && scoreSnow<=50)
         {
+            outside = true;
             tags.add("sea");
         }
 
+        if (outside)
+            tags.add("outside");
+
+        return outside;
     }
 
     public void run(ImageProcessor ip)
@@ -379,34 +395,11 @@ public class ScriptTagging implements PlugInFilter
         getMainColors();
         getBrightness(stats.getHistogram());
 
-        findEnvironnement(ip); //Attention, clean la map
+        if (findEnvironnement(ip)) //Attention, clean la map
+        {
+            findCity(ip);
+        }
 
-
-        // Pour des tests.
-
-        int [] verticalKernel = {-1, 2, -1, -1, 2, -1, -1, 2, -1};
-        int [] horizontalKernel = {-1, -1, -1, 2, 2, 2, -1, -1, -1};
-
-        Pair <Integer, Integer> verticalEdges = getEdges(ip, verticalKernel, true);
-        Pair <Integer, Integer> horizontalEdges = getEdges(ip, horizontalKernel, false);
-
-        //double proportionVerticale = verticalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
-        //double proportionHorizontale = horizontalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
-
-        double verticalMean = verticalEdges.getValue() * 1f / verticalEdges.getKey();
-        //double horizontalMean = horizontalEdges.getValue() * 1f / horizontalEdges.getKey();
-
-        /*IJ.log("Proportion verticale : " + Double.toString(proportionVerticale));
-        IJ.log("Proportion horizontale : " + Double.toString(proportionHorizontale));
-        IJ.log("Moyenne taille verticale : " + Double.toString(verticalMean));
-        IJ.log("Moyenne taille horizontale : " + Double.toString(horizontalMean));
-        IJ.log("Proportion moyenne verticale/horizontale : " + Double.toString(verticalMean / horizontalMean));
-        IJ.log("Proportion verticale/horizontale : " + Double.toString(proportionVerticale / proportionHorizontale));
-        IJ.log("verticale - horizontale : " + Double.toString(verticalMean - horizontalMean));*/
-
-
-        if (verticalMean > 4)
-            tags.add("city");
 
         loadInFile();
     }
