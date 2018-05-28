@@ -188,6 +188,12 @@ public class ScriptTagging implements PlugInFilter
         }
     }
 
+    public void findSky(ImageProcessor ip)
+    {
+        int width = ip.getWidth();
+        int height = ip.getHeight();
+    }
+
     public void run(ImageProcessor ip)
     {        
     	stats = (IJ.getImage()).getStatistics();
@@ -224,6 +230,7 @@ public class ScriptTagging implements PlugInFilter
         getMainColors();
         getBrightness(stats.getHistogram());
     
+        findSky(ip);
 
 
         // Pour des tests.
