@@ -253,7 +253,7 @@ public class ScriptTagging implements PlugInFilter
                         }
                     }
                 }
-                double percentOfEdgePixel=(findEdgeColoredPixel/(findEdgeBlackPixel+findEdgeColoredPixel))*100;
+                double percentOfEdgePixel=(findEdgeColoredPixel*1f/(findEdgeBlackPixel+findEdgeColoredPixel))*100;
                 double percentOfBlue=0;
                 double percentOfWhiteAndGrey=0;
                 if(allColors.containsKey("blue"))
@@ -281,7 +281,7 @@ public class ScriptTagging implements PlugInFilter
                 {
                     score+=15;
                 }
-                else if(percentOfBlue>70 && percentOfWhiteAndGrey>15 && percentOfEdgePixel<20)
+                else if(percentOfBlue>60 && percentOfWhiteAndGrey>15 && percentOfEdgePixel<30)
                 {
                     score+=10;
                 }
@@ -290,14 +290,11 @@ public class ScriptTagging implements PlugInFilter
                     score+=0;
                 }
             }
-           
         }
-
-                        IJ.log(Integer.toString(score));
 
         if(score>=100)
         {
-            tags.add(" clear sky");
+            tags.add("clear sky");
         }
 
     }
@@ -342,27 +339,27 @@ public class ScriptTagging implements PlugInFilter
 
         // Pour des tests.
 
-        /* int [] verticalKernel = {-1, 2, -1, -1, 2, -1, -1, 2, -1};
+        int [] verticalKernel = {-1, 2, -1, -1, 2, -1, -1, 2, -1};
         int [] horizontalKernel = {-1, -1, -1, 2, 2, 2, -1, -1, -1};
 
         Pair <Integer, Integer> verticalEdges = getEdges(ip, verticalKernel, true);
         Pair <Integer, Integer> horizontalEdges = getEdges(ip, horizontalKernel, false);
 
-        double proportionVerticale = verticalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
-        double proportionHorizontale = horizontalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
+        //double proportionVerticale = verticalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
+        //double proportionHorizontale = horizontalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
 
-        double moyenneVerticale = verticalEdges.getValue() * 1f / verticalEdges.getKey();
-        double moyennehorizontale = horizontalEdges.getValue() * 1f / horizontalEdges.getKey();
+        double verticalMean = verticalEdges.getValue() * 1f / verticalEdges.getKey();
+        double horizontalMean = horizontalEdges.getValue() * 1f / horizontalEdges.getKey();
 
-        IJ.write("Proportion verticale : " + Double.toString(proportionVerticale));
+        /*IJ.write("Proportion verticale : " + Double.toString(proportionVerticale));
         IJ.write("Proportion horizontale : " + Double.toString(proportionHorizontale));
         IJ.write("Moyenne taille verticale : " + Double.toString(moyenneVerticale));
         IJ.write("Moyenne taille horizontale : " + Double.toString(moyennehorizontale));
         IJ.write("Proportion moyenne verticale/horizontale : " + Double.toString(moyenneVerticale / moyennehorizontale));
         IJ.write("Proportion verticale/horizontale : " + Double.toString(proportionVerticale / proportionHorizontale));*/
 
-
-
+        if (verticalMean / horizontalMean > 1.3)
+            tags.add("city");
 
         loadInFile();
     }
