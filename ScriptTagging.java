@@ -197,14 +197,16 @@ public class ScriptTagging implements PlugInFilter
     si le score atteind son max, on ajoute le tag "clear sky" aux tags
      */
 
-    public void findSky(ImageProcessor ip)
+    public void findEnvironnement(ImageProcessor ip)
     {
         // on définit ici une variable qui va s'incrémenter lors du parcours de l'image suivant les résultats obtenus
         int height =ip.getHeight();
         int width =ip.getWidth();
         int heightpixelGrid= height/10;
         int witdhPixelGrid= width/10;
-        int score= 0; // le score de l'image, si elle depasse 100 on considère qu'un ciel est trouvé
+        int scoreSky= 0; // le score de l'image, si elle depasse 100 on considère qu'un ciel est trouvé
+        int scoreSea =0;
+        int scoreSnow = 0;
         int findEdgeBlackPixel; // permet de calculer le nombre de pixels noir dans une section definie
         int findEdgeColoredPixel; // permet de calculer le nombre de pixels coloré dans une section definie
         float [] ImageGrid;
@@ -256,43 +258,54 @@ public class ScriptTagging implements PlugInFilter
                 double percentOfEdgePixel=(findEdgeColoredPixel*1f/(findEdgeBlackPixel+findEdgeColoredPixel))*100;
                 double percentOfBlue=0;
                 double percentOfWhiteAndGrey=0;
+                double percentOfGrey = 0;
+                double percentOfWhite = 0;
                 if(allColors.containsKey("blue"))
                 {
                     percentOfBlue= (allColors.get("blue")*1f/(witdhPixelGrid*heightpixelGrid))*100;
                 }
                 if(allColors.containsKey("gray"))
                 {
-                    percentOfWhiteAndGrey+= (allColors.get("gray")*1f/(witdhPixelGrid*heightpixelGrid))*100;
+                    percentOfGrey+= (allColors.get("gray")*1f/(witdhPixelGrid*heightpixelGrid))*100;
                 }
                 if(allColors.containsKey("white"))
                 {
-                    percentOfWhiteAndGrey += (allColors.get("white")*1f/(witdhPixelGrid*heightpixelGrid))*100;
+                    percentOfWhite+= (allColors.get("white")*1f/(witdhPixelGrid*heightpixelGrid))*100;
                 }
+                percentOfWhiteAndGrey= percentOfGrey+percentOfWhite;
+
                  /*
                  partie d'indentation du score, a peu pres ce qu'il se pase dans un reseau de neurone sauf
                  qu'ici on bouge les paramètre du seul neurone créé manuellement pour avoir le plus de
                  reponses juste avec la banque d'image donnée
                 */
+
+                 //On indente le score pour le ciel
                 if(percentOfBlue==100 && percentOfEdgePixel==0)
                 {
-                    score+=20;
+                    scoreSky+=20;
                 }
                 else if(percentOfBlue>90 && percentOfEdgePixel <5)
                 {
-                    score+=15;
+                    scoreSky+=15;
                 }
                 else if(percentOfBlue>60 && percentOfWhiteAndGrey>15 && percentOfEdgePixel<30)
                 {
-                    score+=10;
+                    scoreSky+=10;
                 }
                 else
                 {
-                    score+=0;
+                    scoreSky+=0;
                 }
+
+
+
+
+
             }
         }
 
-        if(score>=100)
+        if(scoreSky>=100)
         {
             tags.add("clear sky");
         }
@@ -333,33 +346,33 @@ public class ScriptTagging implements PlugInFilter
         }
         getMainColors();
         getBrightness(stats.getHistogram());
-    
-        findSky(ip); //Attention, clean la map
+
+        findEnvironnement(ip); //Attention, clean la map
 
 
         // Pour des tests.
 
-        int [] verticalKernel = {-1, 2, -1, -1, 2, -1, -1, 2, -1};
+        /*int [] verticalKernel = {-1, 2, -1, -1, 2, -1, -1, 2, -1};
         int [] horizontalKernel = {-1, -1, -1, 2, 2, 2, -1, -1, -1};
 
         Pair <Integer, Integer> verticalEdges = getEdges(ip, verticalKernel, true);
         Pair <Integer, Integer> horizontalEdges = getEdges(ip, horizontalKernel, false);
 
-        //double proportionVerticale = verticalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
-        //double proportionHorizontale = horizontalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
+        double proportionVerticale = verticalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
+        double proportionHorizontale = horizontalEdges.getKey() * 1f / (verticalEdges.getKey() + horizontalEdges.getKey());
 
         double verticalMean = verticalEdges.getValue() * 1f / verticalEdges.getKey();
         double horizontalMean = horizontalEdges.getValue() * 1f / horizontalEdges.getKey();
 
-        /*IJ.write("Proportion verticale : " + Double.toString(proportionVerticale));
-        IJ.write("Proportion horizontale : " + Double.toString(proportionHorizontale));
-        IJ.write("Moyenne taille verticale : " + Double.toString(moyenneVerticale));
-        IJ.write("Moyenne taille horizontale : " + Double.toString(moyennehorizontale));
-        IJ.write("Proportion moyenne verticale/horizontale : " + Double.toString(moyenneVerticale / moyennehorizontale));
-        IJ.write("Proportion verticale/horizontale : " + Double.toString(proportionVerticale / proportionHorizontale));*/
+        IJ.log("Proportion verticale : " + Double.toString(proportionVerticale));
+        IJ.log("Proportion horizontale : " + Double.toString(proportionHorizontale));
+        IJ.log("Moyenne taille verticale : " + Double.toString(verticalMean));
+        IJ.log("Moyenne taille horizontale : " + Double.toString(horizontalMean));
+        IJ.log("Proportion moyenne verticale/horizontale : " + Double.toString(verticalMean / horizontalMean));
+        IJ.log("Proportion verticale/horizontale : " + Double.toString(proportionVerticale / proportionHorizontale));
 
         if (verticalMean / horizontalMean > 1.3)
-            tags.add("city");
+            tags.add("city");*/
 
         loadInFile();
     }
