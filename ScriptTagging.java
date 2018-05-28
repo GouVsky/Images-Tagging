@@ -242,7 +242,8 @@ public class ScriptTagging implements PlugInFilter
                         // On convertit la teinte en degrés.
                         hsv[0] *= 360;
                         getColor(hsv);
-                        if(rgb[0]==0 && rgb[1]==0 && rgb[2]==0)
+
+                        if(rgbClone[0]<=30 && rgbClone[1]<=30 && rgbClone[2]<=30)
                         {
                             findEdgeBlackPixel++;
                         }
@@ -253,6 +254,7 @@ public class ScriptTagging implements PlugInFilter
                     }
                 }
 
+                IJ.log(Integer.toString(allColors.get("blue")));
                 double percentOfEdgePixel=(findEdgeColoredPixel/(findEdgeBlackPixel+findEdgeColoredPixel))*100;
                 double percentOfBlue=0;
                 double percentOfWhiteAndGrey=0;
@@ -268,8 +270,8 @@ public class ScriptTagging implements PlugInFilter
                 {
                     percentOfWhiteAndGrey+= (allColors.get("white")/(witdhPixelGrid*heightpixelGrid))*100;
                 }
-
                 IJ.log(Double.toString(percentOfBlue) + " " + Double.toString(percentOfWhiteAndGrey) + " " + Double.toString(percentOfWhiteAndGrey));
+
                  /*
                  partie d'indentation du score, a peu pres ce qu'il se pase dans un reseau de neurone sauf
                  qu'ici on bouge les paramètre du seul neurone créé manuellement pour avoir le plus de
@@ -283,7 +285,7 @@ public class ScriptTagging implements PlugInFilter
                 {
                     score+=15;
                 }
-                else if(percentOfBlue>70 && percentOfWhiteAndGrey>15 && percentOfEdgePixel<10)
+                else if(percentOfBlue>70 && percentOfWhiteAndGrey>15 && percentOfEdgePixel<20)
                 {
                     score+=10;
                 }
