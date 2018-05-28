@@ -188,10 +188,118 @@ public class ScriptTagging implements PlugInFilter
         }
     }
 
+    /*
+    Fonction basique permettant de repérer un ciel clair et dégagé grâce à une variable score
+    pas aussi efficace qu'un deep/machine learning bien évidemment!
+    Consiste en la separation de l'image en plusieurs zones (on ne prend pas de zone particuliere style premier tiers haut
+    car l'image peut être prise en biais), puis calculer les edge dans chaque zone (grace au filtre) et les deux
+    couleurs principales. Plus une zone a peu de bords (en ayant bleu et blanc comme couleur), plus cela va augmenter le score
+    si le score atteind son max, on ajoute le tag "clear sky" aux tags
+     */
+
     public void findSky(ImageProcessor ip)
     {
-        int width = ip.getWidth();
-        int height = ip.getHeight();
+        // on définit ici une variable qui va s'incrémenter lors du parcours de l'image suivant les résultats obtenus
+        int height =ip.getHeight();
+        int width =ip.getWidth();
+        int heightpixelGrid= height/10;
+        int witdhPixelGrid= width/10;
+        int score= 0; // le score de l'image, si elle depasse 100 on considère qu'un ciel est trouvé
+        int findEdgeBlackPixel; // permet de calculer le nombre de pixels noir dans une section definie
+        int findEdgeColoredPixel; // permet de calculer le nombre de pixels coloré dans une section definie
+        float [] ImageGrid;
+
+        ImageProcessor ipClone = ip.duplicate();
+        ipClone.findEdges();
+        //decoupage de l'iage en grille de 10 par 10 cases (100 au total)
+        for(int gridWidth=0; gridWidth<10; gridWidth++)
+        {
+            for(int gridHeight=0; gridHeight<10; gridHeight++)
+            {
+                // deplacement a l'interieur d'une cellule de la grille, vidage du tableau;
+                ImageGrid = new float[witdhPixelGrid*heightpixelGrid];
+                findEdgeBlackPixel=0;
+                findEdgeColoredPixel=0;
+                allColors.clear(); // on efface la map
+                for(int widthCounter=gridWidth*witdhPixelGrid; widthCounter< witdhPixelGrid*(gridWidth+1); widthCounter++)
+                {
+                    for(int heightCounter=gridHeight*heightpixelGrid; heightCounter<heightpixelGrid*(gridHeight+1); heightCounter++)
+                    {
+                        // on recupere les pixels de ipClone
+                        int []rgbClone = new int[3];
+                        ipClone.getPixel(widthCounter, heightCounter, rgbClone);
+
+                        //on recupere les pixels de l'image originale
+                        float[] hsv = new float[3];
+                        int []rgb= new int[3];
+                        ip.getPixel(widthCounter, heightCounter, rgb);
+                        if (ip.isGrayscale())
+                        {
+                            rgb[1] = rgb[0];
+                            rgb[2] = rgb[0];
+                        }
+                        Color.RGBtoHSB(rgb[0], rgb[1], rgb[2], hsv);
+                        // On convertit la teinte en degrés.
+                        hsv[0] *= 360;
+                        getColor(hsv);
+                        if(rgb[0]==0 && rgb[1]==0 && rgb[2]==0)
+                        {
+                            findEdgeBlackPixel++;
+                        }
+                        else
+                        {
+                            findEdgeColoredPixel++;
+                        }
+                    }
+                }
+
+                double percentOfEdgePixel=(findEdgeColoredPixel/(findEdgeBlackPixel+findEdgeColoredPixel))*100;
+                double percentOfBlue=0;
+                double percentOfWhiteAndGrey=0;
+                if(allColors.containsKey("blue"))
+                {
+                    percentOfBlue= (allColors.get("blue")/(witdhPixelGrid*heightpixelGrid))*100;
+                }
+                if(allColors.containsKey("gray"))
+                {
+                    percentOfWhiteAndGrey+= (allColors.get("gray")/(witdhPixelGrid*heightpixelGrid))*100;
+                }
+                if(allColors.containsKey("white"))
+                {
+                    percentOfWhiteAndGrey+= (allColors.get("white")/(witdhPixelGrid*heightpixelGrid))*100;
+                }
+
+                IJ.log(Double.toString(percentOfBlue) + " " + Double.toString(percentOfWhiteAndGrey) + " " + Double.toString(percentOfWhiteAndGrey));
+                 /*
+                 partie d'indentation du score, a peu pres ce qu'il se pase dans un reseau de neurone sauf
+                 qu'ici on bouge les paramètre du seul neurone créé manuellement pour avoir le plus de
+                 reponses juste avec la banque d'image donnée
+                */
+                if(percentOfBlue==100 && percentOfEdgePixel==0)
+                {
+                    score+=20;
+                }
+                else if(percentOfBlue>90 && percentOfEdgePixel <5)
+                {
+                    score+=15;
+                }
+                else if(percentOfBlue>70 && percentOfWhiteAndGrey>15 && percentOfEdgePixel<10)
+                {
+                    score+=10;
+                }
+                else
+                {
+                    score+=0;
+                }
+
+            }
+           
+        }
+        if(score>=100)
+        {
+            tags.add(" clear sky");
+        }
+
     }
 
     public void run(ImageProcessor ip)
@@ -226,11 +334,10 @@ public class ScriptTagging implements PlugInFilter
                 getColor(hsv);
             }
         }
-
         getMainColors();
         getBrightness(stats.getHistogram());
     
-        findSky(ip);
+        findSky(ip); //Attention, clean la map
 
 
         // Pour des tests.
@@ -263,7 +370,7 @@ public class ScriptTagging implements PlugInFilter
     public void loadInFile()
     {
         File file = new File(name + ".txt"); 
-        
+
         try
         {
             file.createNewFile();
