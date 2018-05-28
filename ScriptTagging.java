@@ -253,25 +253,21 @@ public class ScriptTagging implements PlugInFilter
                         }
                     }
                 }
-
-                IJ.log(Integer.toString(allColors.get("blue")));
                 double percentOfEdgePixel=(findEdgeColoredPixel/(findEdgeBlackPixel+findEdgeColoredPixel))*100;
                 double percentOfBlue=0;
                 double percentOfWhiteAndGrey=0;
                 if(allColors.containsKey("blue"))
                 {
-                    percentOfBlue= (allColors.get("blue")/(witdhPixelGrid*heightpixelGrid))*100;
+                    percentOfBlue= (allColors.get("blue")*1f/(witdhPixelGrid*heightpixelGrid))*100;
                 }
                 if(allColors.containsKey("gray"))
                 {
-                    percentOfWhiteAndGrey+= (allColors.get("gray")/(witdhPixelGrid*heightpixelGrid))*100;
+                    percentOfWhiteAndGrey+= (allColors.get("gray")*1f/(witdhPixelGrid*heightpixelGrid))*100;
                 }
                 if(allColors.containsKey("white"))
                 {
-                    percentOfWhiteAndGrey+= (allColors.get("white")/(witdhPixelGrid*heightpixelGrid))*100;
+                    percentOfWhiteAndGrey += (allColors.get("white")*1f/(witdhPixelGrid*heightpixelGrid))*100;
                 }
-                IJ.log(Double.toString(percentOfBlue) + " " + Double.toString(percentOfWhiteAndGrey) + " " + Double.toString(percentOfWhiteAndGrey));
-
                  /*
                  partie d'indentation du score, a peu pres ce qu'il se pase dans un reseau de neurone sauf
                  qu'ici on bouge les paramètre du seul neurone créé manuellement pour avoir le plus de
@@ -293,10 +289,12 @@ public class ScriptTagging implements PlugInFilter
                 {
                     score+=0;
                 }
-
             }
            
         }
+
+                        IJ.log(Integer.toString(score));
+
         if(score>=100)
         {
             tags.add(" clear sky");
