@@ -336,12 +336,12 @@ public class ScriptTagging implements PlugInFilter
             tags.add("clear sky");
         }
 
-        if(scoreSnow>=100)
+        if(scoreSnow>=100 && scoreSky>=30)
         {
             tags.add("snow");
         }
 
-        if(scoreSea>=100)
+        if(scoreSea>=100 && scoreSnow<=50)
         {
             tags.add("Sea");
         }
