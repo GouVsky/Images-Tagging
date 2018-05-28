@@ -207,19 +207,27 @@ public class ScriptTagging implements PlugInFilter
         int scoreSky= 0; // le score de l'image, si elle depasse 100 on considère qu'un ciel est trouvé
         int scoreSea =0;
         int scoreSnow = 0;
-        int findEdgeBlackPixel; // permet de calculer le nombre de pixels noir dans une section definie
-        int findEdgeColoredPixel; // permet de calculer le nombre de pixels coloré dans une section definie
+        int findEdgeBlackPixel=0; // permet de calculer le nombre de pixels noir dans une section definie
+        int findEdgeColoredPixel=0; // permet de calculer le nombre de pixels coloré dans une section definie
+        double percentOfBlue=0; // variable pour calculer le poucentage de pixel bleu dans une image
+        double percentOfWhiteAndGrey=0; // variable pour calculer le poucentage de pixel blanc et gris dans une image
+        double percentOfGrey = 0; // variable pour calculer le poucentage de pixel gris dans une image
+        double percentOfWhite = 0; // variable pour calculer le poucentage de pixel blanc dans une image
         float [] ImageGrid;
 
         ImageProcessor ipClone = ip.duplicate();
         ipClone.findEdges();
-        //decoupage de l'iage en grille de 10 par 10 cases (100 au total)
+        //decoupage de l'iage en grille de 10 par 10 cases (100 au total) avec les deux premieres boucles
         for(int gridWidth=0; gridWidth<10; gridWidth++)
         {
             for(int gridHeight=0; gridHeight<10; gridHeight++)
             {
-                // deplacement a l'interieur d'une cellule de la grille, vidage du tableau;
+                // deplacement a l'interieur d'une cellule de la grille pixel par pixel, vidage du tableau;
                 ImageGrid = new float[witdhPixelGrid*heightpixelGrid];
+                percentOfBlue=0;
+                percentOfWhiteAndGrey=0;
+                percentOfGrey = 0;
+                percentOfWhite = 0;
                 findEdgeBlackPixel=0;
                 findEdgeColoredPixel=0;
                 allColors.clear(); // on efface la map
@@ -255,11 +263,9 @@ public class ScriptTagging implements PlugInFilter
                         }
                     }
                 }
+                //on transforme le nombre de pixel en pourcentage
                 double percentOfEdgePixel=(findEdgeColoredPixel*1f/(findEdgeBlackPixel+findEdgeColoredPixel))*100;
-                double percentOfBlue=0;
-                double percentOfWhiteAndGrey=0;
-                double percentOfGrey = 0;
-                double percentOfWhite = 0;
+
                 if(allColors.containsKey("blue"))
                 {
                     percentOfBlue= (allColors.get("blue")*1f/(witdhPixelGrid*heightpixelGrid))*100;
@@ -293,11 +299,31 @@ public class ScriptTagging implements PlugInFilter
                 {
                     scoreSky+=10;
                 }
-                else
+
+                if(percentOfWhite>90 && percentOfEdgePixel<50)
                 {
-                    scoreSky+=0;
+                    scoreSnow+=20
                 }
 
+                if(percentOfWhite>70 && percentOfGrey>10 && percentOfEdgePixel <60)
+                {
+                    scoreSnow+=15
+                }
+
+                if(percentOfBlue==100 && percentOfEdgePixel>80)
+                {
+                    scoreSea+=20;
+                }
+
+                if(percentOfBlue>90 && percentOfEdgePixel>70)
+                {
+                    scoreSea+=15
+                }
+
+                if(percentOfBlue>80 && percentOfEdgePixel>60)
+                {
+                    scoreSea+=10;
+                }
 
 
 
@@ -309,6 +335,18 @@ public class ScriptTagging implements PlugInFilter
         {
             tags.add("clear sky");
         }
+
+        if(scoreSnow>=100)
+        {
+            tags.add("snow");
+        }
+
+        if(scoreSea>=100)
+        {
+            tag.add("Sea");
+        }
+
+
 
     }
 
