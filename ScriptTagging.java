@@ -302,12 +302,12 @@ public class ScriptTagging implements PlugInFilter
 
                 if(percentOfWhite>90 && percentOfEdgePixel<50)
                 {
-                    scoreSnow+=20
+                    scoreSnow+=20;
                 }
 
                 if(percentOfWhite>70 && percentOfGrey>10 && percentOfEdgePixel <60)
                 {
-                    scoreSnow+=15
+                    scoreSnow+=15;
                 }
 
                 if(percentOfBlue==100 && percentOfEdgePixel>80)
@@ -317,7 +317,7 @@ public class ScriptTagging implements PlugInFilter
 
                 if(percentOfBlue>90 && percentOfEdgePixel>70)
                 {
-                    scoreSea+=15
+                    scoreSea+=15;
                 }
 
                 if(percentOfBlue>80 && percentOfEdgePixel>60)
@@ -343,7 +343,7 @@ public class ScriptTagging implements PlugInFilter
 
         if(scoreSea>=100)
         {
-            tag.add("Sea");
+            tags.add("Sea");
         }
 
 
