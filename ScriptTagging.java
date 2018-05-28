@@ -197,14 +197,16 @@ public class ScriptTagging implements PlugInFilter
     si le score atteind son max, on ajoute le tag "clear sky" aux tags
      */
 
-    public void findSky(ImageProcessor ip)
+    public void findEnvironnement(ImageProcessor ip)
     {
         // on définit ici une variable qui va s'incrémenter lors du parcours de l'image suivant les résultats obtenus
         int height =ip.getHeight();
         int width =ip.getWidth();
         int heightpixelGrid= height/10;
         int witdhPixelGrid= width/10;
-        int score= 0; // le score de l'image, si elle depasse 100 on considère qu'un ciel est trouvé
+        int scoreSky= 0; // le score de l'image, si elle depasse 100 on considère qu'un ciel est trouvé
+        int scoreSea =0;
+        int scoreSnow = 0;
         int findEdgeBlackPixel; // permet de calculer le nombre de pixels noir dans une section definie
         int findEdgeColoredPixel; // permet de calculer le nombre de pixels coloré dans une section definie
         float [] ImageGrid;
@@ -253,51 +255,62 @@ public class ScriptTagging implements PlugInFilter
                         }
                     }
                 }
+
+                IJ.log(Integer.toString(allColors.get("blue")));
                 double percentOfEdgePixel=(findEdgeColoredPixel/(findEdgeBlackPixel+findEdgeColoredPixel))*100;
                 double percentOfBlue=0;
                 double percentOfWhiteAndGrey=0;
+                double percentOfGrey = 0;
+                double percentOfWhite = 0;
                 if(allColors.containsKey("blue"))
                 {
-                    percentOfBlue= (allColors.get("blue")*1f/(witdhPixelGrid*heightpixelGrid))*100;
+                    percentOfBlue= (allColors.get("blue")/(witdhPixelGrid*heightpixelGrid))*100;
                 }
                 if(allColors.containsKey("gray"))
                 {
-                    percentOfWhiteAndGrey+= (allColors.get("gray")*1f/(witdhPixelGrid*heightpixelGrid))*100;
+                    percentOfGrey+= (allColors.get("gray")/(witdhPixelGrid*heightpixelGrid))*100;
                 }
                 if(allColors.containsKey("white"))
                 {
-                    percentOfWhiteAndGrey += (allColors.get("white")*1f/(witdhPixelGrid*heightpixelGrid))*100;
+                    percentOfWhite+= (allColors.get("white")/(witdhPixelGrid*heightpixelGrid))*100;
                 }
+                percentOfWhiteAndGrey= percentOfGrey+percentOfWhite;
+                IJ.log(Double.toString(percentOfBlue) + " " + Double.toString(percentOfWhiteAndGrey) + " " + Double.toString(percentOfWhiteAndGrey));
+
                  /*
                  partie d'indentation du score, a peu pres ce qu'il se pase dans un reseau de neurone sauf
                  qu'ici on bouge les paramètre du seul neurone créé manuellement pour avoir le plus de
                  reponses juste avec la banque d'image donnée
                 */
+
+                 //On indente le score pour le ciel
                 if(percentOfBlue==100 && percentOfEdgePixel==0)
                 {
-                    score+=20;
+                    scoreSky+=20;
                 }
                 else if(percentOfBlue>90 && percentOfEdgePixel <5)
                 {
-                    score+=15;
+                    scoreSky+=15;
                 }
                 else if(percentOfBlue>70 && percentOfWhiteAndGrey>15 && percentOfEdgePixel<20)
                 {
-                    score+=10;
+                    scoreSky+=10;
                 }
                 else
                 {
-                    score+=0;
+                    scoreSky+=0;
                 }
+
+
+
+
+
             }
            
         }
-
-                        IJ.log(Integer.toString(score));
-
-        if(score>=100)
+        if(scoreSky>=100)
         {
-            tags.add(" clear sky");
+            tags.add("clear sky");
         }
 
     }
@@ -336,8 +349,8 @@ public class ScriptTagging implements PlugInFilter
         }
         getMainColors();
         getBrightness(stats.getHistogram());
-    
-        findSky(ip); //Attention, clean la map
+
+        findEnvironnement(ip); //Attention, clean la map
 
 
         // Pour des tests.
